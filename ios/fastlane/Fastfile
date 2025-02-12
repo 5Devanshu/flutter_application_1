@@ -1,17 +1,14 @@
-# ios/fastlane/Fastfile
-default_platform(:ios)
-
 platform :ios do
-  desc "Build and upload to Firebase App Distribution"
-  lane :beta do
-    # Ensure fastlane is installed in the environment
-    match(type: "appstore")  # Optional, if you want to handle code signing with match
-    build_app(scheme: "Runner")
-    firebase_app_distribution(
-      app: ENV["IOS_APP_ID"],
-      token: ENV["TOKEN"],
-      groups: "pre-tester",
-      ipa_path: "./build/ios/iphoneos/Runner.ipa"
-    )
+  desc "My awesome app"
+  lane :distribute do
+      build_ios_app(...)
+      # build_ios_app is a built-in fastlane action.
+
+      release = firebase_app_distribution(
+          app: "1:123456789:ios:abcd1234",
+          testers: "tester1@company.com, tester2@company.com",
+          release_notes: "Lots of amazing new features to test out!"
+      )
+
   end
 end
