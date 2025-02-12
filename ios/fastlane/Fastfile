@@ -5,8 +5,8 @@ platform :ios do
       # build_ios_app is a built-in fastlane action.
 
       release = firebase_app_distribution(
-          app: "1:123456789:ios:abcd1234",
-          testers: "tester1@company.com, tester2@company.com",
+          app: "1:294303509902:ios:9ea7ba44238e94e100c8df",
+          testers: "devanshudandekar5@gmail.com",
           release_notes: "Lots of amazing new features to test out!"
       )
 
