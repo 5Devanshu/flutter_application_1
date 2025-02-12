@@ -33,18 +33,45 @@ jobs:
         with:
           channel: "stable"
 
-      # Install Fastlane
-      - name: Set up Fastlane
-        run: |
-          sudo gem install fastlane -NV
+      # Install Flutter dependencies
+      - name: Install Dependencies
+        run: flutter pub get
 
-      # Decode google-services.json
+      # Build APK (Android)
+      - name: Build APK
+        run: flutter build apk --release
+
+      # Upload APK to Firebase App Distribution (Android)
+      - name: Upload APK to Firebase App Distribution (Android)
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+            appId: ${{ secrets.APP_ID }}
+            token: ${{ secrets.TOKEN }}
+            groups: pre-tester
+            file: build/app/outputs/apk/release/app-release.apk
+
+  ios_build:
+    # Use macOS for iOS build
+    runs-on: macOS-latest
+
+    steps:
+      # Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Set up Flutter
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+
+      # Decode google-services.json (optional for iOS)
       - name: Decode google-services.json
         env: 
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+        run: echo "$GOOGLE_SERVICES_JSON" > ios/Runner/google-services.json
 
-      # Decode firebase_options.dart
+      # Decode firebase_options.dart (optional for iOS)
       - name: Decode firebase_options.dart
         env:
           FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTION }}
@@ -58,24 +85,16 @@ jobs:
       - name: Run Flutter Analyze
         run: flutter analyze
 
-      # Build APK (Android)
-      - name: Build APK
-        run: flutter build apk --release
+      # Build iOS App
+      - name: Build iOS App
+        run: flutter build ios --release --no-codesign
 
-      # Run Fastlane for iOS build and upload to Firebase App Distribution
-      - name: Build and Upload iOS App using Fastlane
-        run: |
-          cd ios
-          fastlane beta
-        env:
-          IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
-          TOKEN: ${{ secrets.TOKEN }}
-
-      # Upload APK to Firebase App Distribution (Android)
-      - name: Upload APK to Firebase App Distribution
+      # Upload iOS IPA to Firebase App Distribution
+      - name: Upload IPA to Firebase App Distribution (iOS)
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-            appId: ${{ secrets.APP_ID }}
+            appId: ${{ secrets.IOS_APP_ID }}
             token: ${{ secrets.TOKEN }}
             groups: pre-tester
-            file: build/app/outputs/apk/release/app-release.apk
+            file: ios/build/ios/iphoneos/Runner.ipa
+
