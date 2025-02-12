@@ -67,7 +67,7 @@ jobs:
             # Debug Firebase App ID
       - name: Debug Firebase App ID
         run: |
-          echo "Firebase App ID: $APPID"
+          echo "Firebase App ID: $APP_ID"
         env:
           APPID: ${{ secrets.APP_ID }}
 
