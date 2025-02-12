@@ -1,0 +1,84 @@
+name: Build & Upload to Firebase App Distribution
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Set Up Java 17 (Required for Gradle)
+      - name: Set Up Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: "zulu"
+          java-version: "17"  # Upgraded to Java 17
+
+      # Set Up Flutter
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+
+      # Decode google-services.json
+      - name: Decode google-services.json
+        env: 
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
+      # Decode Firebase options
+      - name: Decode firebase_options.dart
+        env:
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTION }}
+        run: echo "$FIREBASE_OPTIONS_DART" > lib/firebase_options.dart
+
+      # Install Dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # Run Flutter Analyze (Optional but recommended)
+      - name: Run Flutter Analyze
+        run: flutter analyze
+
+      # Build APK
+      - name: Build APK
+        run: flutter build apk --release
+
+      # Upload APK as an artifact
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/apk/release/app-release.apk
+
+            # Debug Firebase App ID
+      - name: Debug Firebase App ID
+        run: |
+          echo "Firebase App ID: $APPID"
+        env:
+          APPID: ${{ secrets.APP_ID }}
+
+
+    
+          # Upload Artifact to Firebase App Distribution
+      - name: Upload APK to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+            appId: ${{ secrets.APP_ID }}
+            token: ${{ secrets.TOKEN }}
+            groups: pre-tester
+            file: build/app/outputs/apk/release/app-release.apk
+    
