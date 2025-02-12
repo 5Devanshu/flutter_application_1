@@ -1,8 +1,11 @@
 platform :ios do
   desc "My awesome app"
   lane :distribute do
-      build_ios_app(...)
-      # build_ios_app is a built-in fastlane action.
+    build_ios_app(
+      scheme: "Runner",               # Use the 'Runner' scheme
+      export_method: "app-store",     # Use 'app-store' for app release, or 'ad-hoc' for testing
+      workspace: "ios/Runner.xcworkspace" # Path to your Flutter iOS workspace
+    )
 
       release = firebase_app_distribution(
           app: "1:294303509902:ios:9ea7ba44238e94e100c8df",
