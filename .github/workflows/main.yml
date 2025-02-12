@@ -53,9 +53,13 @@ jobs:
       - name: Run Flutter Analyze
         run: flutter analyze
 
-      # Build APK
+      # Build APK (Android)
       - name: Build APK
         run: flutter build apk --release
+
+      # Build iOS App
+      - name: Build iOS App
+        run: flutter build ios --release --no-codesign
 
       # Upload APK as an artifact
       - name: Upload APK Artifact
@@ -64,16 +68,23 @@ jobs:
           name: release-apk
           path: build/app/outputs/apk/release/app-release.apk
 
-            # Debug Firebase App ID
+      # Upload iOS Artifact
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-ios
+          path: build/ios/iphoneos/Runner.app
+
+      # Debug Firebase App ID
       - name: Debug Firebase App ID
         run: |
-          echo "Firebase App ID: $APP_ID"
+          echo "Firebase App ID (Android): $ANDROID_APP_ID"
+          echo "Firebase App ID (iOS): $IOS_APP_ID"
         env:
-          APPID: ${{ secrets.APP_ID }}
+          ANDROID_APP_ID: ${{ secrets.APP_ID }}
+          IOS_APP_ID: ${{ secrets.IOS_APP_ID }}
 
-
-    
-          # Upload Artifact to Firebase App Distribution
+      # Upload APK to Firebase App Distribution (Android)
       - name: Upload APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
@@ -81,4 +92,14 @@ jobs:
             token: ${{ secrets.TOKEN }}
             groups: pre-tester
             file: build/app/outputs/apk/release/app-release.apk
+
+      # Upload iOS to Firebase App Distribution
+      - name: Upload iOS to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+            appId: ${{ secrets.IOS_APP_ID }}
+            token: ${{ secrets.TOKEN }}
+            groups: pre-tester
+            file: build/ios/iphoneos/Runner.ipa
+
     
